@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
+import { GitFork, ShieldAlert, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RowSkeleton, Skeleton } from "@/components/skeleton";
 
 type Student = {
   id: string;
@@ -35,9 +37,21 @@ export default function AdminPage() {
     enabled: session?.user?.role === "admin",
   });
 
-  if (status === "loading") return <p className="text-muted-foreground">Loading…</p>;
+  if (status === "loading") {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+      </div>
+    );
+  }
   if (session?.user?.role !== "admin") {
-    return <p className="text-muted-foreground">This dashboard is restricted to AI Cell leadership.</p>;
+    return (
+      <div className="flex flex-col items-center gap-2 py-16 text-center text-muted-foreground">
+        <ShieldAlert className="size-8 opacity-40" />
+        This dashboard is restricted to AI Cell leadership.
+      </div>
+    );
   }
 
   return (
@@ -60,17 +74,36 @@ export default function AdminPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{students?.length ?? 0} students</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="size-4 text-primary" />
+            {students?.length ?? 0} students
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+          {isLoading && (
+            <div className="divide-y">
+              <RowSkeleton />
+              <RowSkeleton />
+              <RowSkeleton />
+            </div>
+          )}
+          {!isLoading && students?.length === 0 && (
+            <p className="py-6 text-center text-sm text-muted-foreground">No students match these filters.</p>
+          )}
           <div className="divide-y">
             {students?.map((s) => (
-              <div key={s.id} className="flex items-center justify-between py-3">
+              <div key={s.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <div>
                   <p className="font-medium">{s.fullName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {s.email} {s.githubHandle && `· github.com/${s.githubHandle}`} {s.batch && `· ${s.batch}`}
+                  <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{s.email}</span>
+                    {s.githubHandle && (
+                      <span className="flex items-center gap-1">
+                        <GitFork className="size-3" />
+                        {s.githubHandle}
+                      </span>
+                    )}
+                    {s.batch && <span>· {s.batch}</span>}
                   </p>
                 </div>
                 <div className="flex max-w-xs flex-wrap justify-end gap-1.5">
