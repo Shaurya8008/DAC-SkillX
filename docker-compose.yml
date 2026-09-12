@@ -1,0 +1,28 @@
+# Optional: real Postgres + pgvector for production-shaped local dev.
+# Not required to run the app — SQLite (web/prisma/schema.prisma) works out
+# of the box. Switch to this once you're ready to match the PRD's target
+# architecture (see web/prisma/schema.prisma header for the migration steps).
+#
+# Usage: docker compose up -d
+#   Then point web/.env DATABASE_URL at:
+#   postgresql://skillx:skillx@localhost:5432/skillx
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: skillx
+      POSTGRES_PASSWORD: skillx
+      POSTGRES_DB: skillx
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:

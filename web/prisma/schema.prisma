@@ -1,0 +1,73 @@
+// SkillX data model.
+//
+// Local dev runs on SQLite so the project works with zero external services.
+// Production target is PostgreSQL + pgvector (see PRD sec. 6). To migrate:
+//   1. Set provider = "postgresql" below, point DATABASE_URL at Supabase/Postgres.
+//   2. Replace `skills`/`requiredSkills` (JSON string) with native TEXT[].
+//   3. Replace `embedding` (JSON string) with a pgvector `Unsupported("vector(1536)")` column
+//      and add HNSW indexes via a raw migration (CREATE INDEX ... USING hnsw ...).
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Profile {
+  id           String   @id @default(uuid())
+  authUserId   String   @unique
+  fullName     String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("student") // student | admin
+  githubHandle String?
+  erp          String?
+  batch        String?
+  bio          String?
+  skills       String   @default("[]") // JSON string[]; Postgres target: TEXT[]
+  embedding    String? // JSON number[1536]; Postgres target: vector(1536)
+
+  // FR-04 GitHub Repo Vetting + FR-05 Adaptive Diagnostic Engine
+  verifiedSkills String  @default("[]") // JSON string[] — skills backed by repo evidence or a passed quiz
+  repoStack      String? // JSON string[] — primary language stack from the last analyzed repo
+  repoComplexity Float? // 0-10 complexity score from the last analyzed repo
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  opportunitiesCreated Opportunity[]
+  matches              Match[]
+}
+
+model Opportunity {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  opportunityType String // hackathon | research | campus_role | project
+  requiredSkills  String   @default("[]") // JSON string[]; Postgres target: TEXT[]
+  embedding       String? // JSON number[1536]; Postgres target: vector(1536)
+  createdById     String
+  createdBy       Profile  @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  matches Match[]
+}
+
+model Match {
+  id             String      @id @default(uuid())
+  studentId      String
+  student        Profile     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  opportunityId  String
+  opportunity    Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  hardSkillScore Float
+  semanticScore  Float
+  finalScore     Float
+  status         String      @default("suggested") // suggested | applied | accepted | declined
+  createdAt      DateTime    @default(now())
+
+  @@unique([studentId, opportunityId])
+}
