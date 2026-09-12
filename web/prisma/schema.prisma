@@ -1,14 +1,14 @@
 // SkillX data model.
 //
-// Local dev runs on SQLite so the project works with zero external services.
-// Production target is PostgreSQL + pgvector (see PRD sec. 6). To migrate:
-//   1. Set provider = "postgresql" below, point DATABASE_URL at Supabase/Postgres.
-//   2. Replace `skills`/`requiredSkills` (JSON string) with native TEXT[].
-//   3. Replace `embedding` (JSON string) with a pgvector `Unsupported("vector(1536)")` column
-//      and add HNSW indexes via a raw migration (CREATE INDEX ... USING hnsw ...).
+// Runs on PostgreSQL (Supabase). `skills`/`requiredSkills`/`embedding` are
+// kept as JSON strings rather than native TEXT[]/vector(1536) columns for
+// now — see PRD sec. 6 for the target pgvector shape; adopting it is a
+// later optimization (HNSW similarity search at scale), not required to
+// run or deploy the app, since cosine similarity is computed in application
+// code today.
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
