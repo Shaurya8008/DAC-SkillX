@@ -3,12 +3,20 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Compass, Sparkles } from "lucide-react";
+import { CheckCircle2, Compass, GitFork, Sparkles, UserCog } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { CardSkeleton, Skeleton } from "@/components/skeleton";
+import { cn } from "@/lib/utils";
 
-type Profile = { fullName: string; skills: string[]; verifiedSkills: string[]; bio: string | null };
+type Profile = {
+  fullName: string;
+  skills: string[];
+  verifiedSkills: string[];
+  bio: string | null;
+  githubHandle: string | null;
+};
 type Opportunity = { id: string; title: string; opportunityType: string; requiredSkills: string[] };
 
 export default function DashboardPage() {
@@ -33,6 +41,7 @@ export default function DashboardPage() {
     ? profile.skills.filter((s) => profile.verifiedSkills.some((v) => v.toLowerCase() === s.toLowerCase())).length
     : 0;
   const readiness = profile ? Math.round((verifiedCount / Math.max(1, profile.skills.length)) * 100) : null;
+  const profileIncomplete = !!profile && profile.skills.length === 0 && !profile.githubHandle;
 
   return (
     <div className="space-y-8">
@@ -42,6 +51,26 @@ export default function DashboardPage() {
         </h1>
         <p className="text-sm text-muted-foreground">Your verified skill profile and recommended opportunities.</p>
       </div>
+
+      {profileIncomplete && (
+        <Card className="border-primary/40 bg-primary/[0.03]">
+          <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
+            <div className="flex items-center gap-3">
+              <UserCog className="size-8 shrink-0 text-primary" />
+              <div>
+                <p className="font-medium">Your profile is empty</p>
+                <p className="text-sm text-muted-foreground">
+                  Add your skills and GitHub handle so we can recommend opportunities and start verifying you.
+                </p>
+              </div>
+            </div>
+            <Link href="/profile" className={cn(buttonVariants(), "gap-1.5")}>
+              <GitFork className="size-4" />
+              Complete your profile
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="sm:col-span-1">

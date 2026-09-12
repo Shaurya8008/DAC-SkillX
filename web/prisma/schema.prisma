@@ -21,7 +21,7 @@ model Profile {
   authUserId   String   @unique
   fullName     String
   email        String   @unique
-  passwordHash String
+  passwordHash String? // null for accounts created via Google sign-in
   role         String   @default("student") // student | admin
   githubHandle String?
   erp          String?
