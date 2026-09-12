@@ -112,7 +112,7 @@ export default function Home() {
         </Reveal>
         <RevealGroup className="grid gap-4 sm:grid-cols-3">
           {steps.map((s, i) => (
-            <RevealItem key={s.title}>
+            <RevealItem key={s.title} index={i}>
               <TiltCard className="glass h-full rounded-xl p-5">
                 <span className="absolute -top-3 -left-1 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                   {i + 1}
@@ -127,8 +127,8 @@ export default function Home() {
       </section>
 
       <RevealGroup className="grid gap-4 sm:grid-cols-3">
-        {personas.map((p) => (
-          <RevealItem key={p.title}>
+        {personas.map((p, i) => (
+          <RevealItem key={p.title} index={i}>
             <TiltCard className="h-full">
               <Card className="glass h-full transition-shadow hover:shadow-sm">
                 <CardHeader>

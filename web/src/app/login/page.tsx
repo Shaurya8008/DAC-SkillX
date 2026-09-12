@@ -32,7 +32,7 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto max-w-sm">
-      <Card>
+      <Card className="glass">
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
         </CardHeader>

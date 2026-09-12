@@ -30,13 +30,25 @@ export function Reveal({
   );
 }
 
-export function RevealGroup({
+// Plain layout wrapper — no motion here. RevealItem below used to rely on
+// inheriting animate state from a `whileInView` parent, which broke for any
+// list loaded asynchronously (e.g. from a query): the parent's `once: true`
+// viewport trigger fires once, against zero children, before the data
+// arrives, and items mounted afterward never get their variant transition
+// applied. Each RevealItem now observes its own viewport entry instead.
+export function RevealGroup({ children, className }: { children: React.ReactNode; className?: string }) {
+  return <div className={className}>{children}</div>;
+}
+
+export function RevealItem({
   children,
   className,
+  index = 0,
   stagger = 0.08,
 }: {
   children: React.ReactNode;
   className?: string;
+  index?: number;
   stagger?: number;
 }) {
   return (
@@ -45,16 +57,9 @@ export function RevealGroup({
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ staggerChildren: stagger }}
+      variants={variants}
+      transition={{ duration: 0.5, delay: index * stagger, ease: "easeOut" }}
     >
-      {children}
-    </motion.div>
-  );
-}
-
-export function RevealItem({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <motion.div className={className} variants={variants} transition={{ duration: 0.5, ease: "easeOut" }}>
       {children}
     </motion.div>
   );

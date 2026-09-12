@@ -53,7 +53,7 @@ export default function DashboardPage() {
       </div>
 
       {profileIncomplete && (
-        <Card className="border-primary/40 bg-primary/[0.03]">
+        <Card className="glass border-primary/40">
           <CardContent className="flex flex-wrap items-center justify-between gap-4 py-5">
             <div className="flex items-center gap-3">
               <UserCog className="size-8 shrink-0 text-primary" />
@@ -73,7 +73,7 @@ export default function DashboardPage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="sm:col-span-1">
+        <Card className="glass sm:col-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm text-muted-foreground">
               <CheckCircle2 className="size-4 text-primary" />
@@ -92,7 +92,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="sm:col-span-2">
+        <Card className="glass sm:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Your skill tags</CardTitle>
           </CardHeader>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             {recommended.map((o) => (
               <Link key={o.id} href={`/opportunities/${o.id}`}>
-                <Card className="h-full transition-all hover:border-primary hover:shadow-sm">
+                <Card className="glass h-full transition-all hover:border-primary hover:shadow-sm">
                   <CardHeader>
                     <Badge variant="outline">{o.opportunityType}</Badge>
                     <CardTitle className="text-base">{o.title}</CardTitle>

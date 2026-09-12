@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { FlaskConical, Plus, Rocket, Sparkles, Users2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -29,6 +30,9 @@ const TYPE_META: Record<string, { label: string; icon: typeof Rocket }> = {
 };
 
 export default function OpportunitiesPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
   const { data, isLoading } = useQuery<Opportunity[]>({
     queryKey: ["opportunities"],
     queryFn: async () => {
@@ -45,10 +49,12 @@ export default function OpportunitiesPage() {
           <h1 className="text-2xl font-semibold">Opportunity Board</h1>
           <p className="text-sm text-muted-foreground">Hackathons, research labs, and club roles.</p>
         </div>
-        <Link href="/opportunities/new" className={cn(buttonVariants(), "gap-1.5")}>
-          <Plus className="size-4" />
-          Post
-        </Link>
+        {isAdmin && (
+          <Link href="/opportunities/new" className={cn(buttonVariants(), "gap-1.5")}>
+            <Plus className="size-4" />
+            Post
+          </Link>
+        )}
       </div>
 
       {isLoading && (
@@ -65,21 +71,23 @@ export default function OpportunitiesPage() {
             <p className="font-medium">No opportunities posted yet</p>
             <p className="text-sm text-muted-foreground">Be the first to post a hackathon, research role, or project.</p>
           </div>
-          <Link href="/opportunities/new" className={cn(buttonVariants(), "mt-1")}>
-            Post an opportunity
-          </Link>
+          {isAdmin && (
+            <Link href="/opportunities/new" className={cn(buttonVariants(), "mt-1")}>
+              Post an opportunity
+            </Link>
+          )}
         </div>
       )}
 
       <RevealGroup className="grid gap-4 sm:grid-cols-2">
-        {data?.map((o) => {
+        {data?.map((o, i) => {
           const meta = TYPE_META[o.opportunityType];
           const Icon = meta?.icon ?? Sparkles;
           return (
-            <RevealItem key={o.id}>
+            <RevealItem key={o.id} index={i}>
               <Link href={`/opportunities/${o.id}`}>
                 <TiltCard>
-                  <Card className="h-full transition-shadow hover:border-primary hover:shadow-sm">
+                  <Card className="glass h-full transition-shadow hover:border-primary hover:shadow-sm">
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <Badge variant="outline" className="gap-1">

@@ -111,7 +111,7 @@ export default function ProfilePage() {
         <p className="text-sm text-muted-foreground">{profile.email}</p>
       </div>
 
-      <Card>
+      <Card className="glass">
         <CardHeader>
           <CardTitle className="text-base">Verified skills</CardTitle>
           <CardDescription>Backed by repo evidence or a passed diagnostic quiz.</CardDescription>
@@ -126,7 +126,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="glass">
         <CardHeader>
           <CardTitle className="text-base">Self-reported skill tags</CardTitle>
         </CardHeader>
@@ -160,7 +160,7 @@ export default function ProfilePage() {
         />
       )}
 
-      <Card>
+      <Card className="glass">
         <CardHeader>
           <CardTitle className="text-base">GitHub repo vetting</CardTitle>
           <CardDescription>
@@ -177,7 +177,7 @@ export default function ProfilePage() {
           </div>
           {repoError && <p className="text-sm text-destructive">{repoError}</p>}
           {profile.repoComplexity !== null && (
-            <div className="rounded-md border p-3 text-sm">
+            <div className="glass rounded-md p-3 text-sm">
               <p>
                 Complexity score: <span className="font-medium">{profile.repoComplexity.toFixed(1)}/10</span>
               </p>
@@ -187,7 +187,7 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="glass">
         <CardHeader>
           <CardTitle className="text-base">Edit profile</CardTitle>
         </CardHeader>

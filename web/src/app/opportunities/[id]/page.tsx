@@ -91,7 +91,7 @@ export default function OpportunityDetailPage() {
         <p className="text-sm text-muted-foreground">Posted by {opportunity.createdBy.fullName}</p>
       </div>
 
-      <Card>
+      <Card className="glass">
         <CardHeader>
           <CardTitle className="text-base">Brief</CardTitle>
           <CardDescription className="whitespace-pre-wrap text-foreground">
@@ -108,7 +108,7 @@ export default function OpportunityDetailPage() {
       </Card>
 
       {!isOwner && session?.user && (
-        <Card>
+        <Card className="glass">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Sparkles className="size-4 text-primary" />
@@ -117,7 +117,7 @@ export default function OpportunityDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {myMatch ? (
-              <div className="grid grid-cols-3 gap-4 rounded-lg border bg-muted/30 p-4">
+              <div className="glass grid grid-cols-3 gap-4 rounded-lg p-4">
                 <MatchScoreStat label="Final score" value={myMatch.finalScore} size="lg" />
                 <MatchScoreStat label="Hard skill overlap" value={myMatch.hardSkillScore} />
                 <MatchScoreStat label="Semantic fit" value={myMatch.semanticScore} />
@@ -133,7 +133,7 @@ export default function OpportunityDetailPage() {
       )}
 
       {isOwner && (
-        <Card>
+        <Card className="glass">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Trophy className="size-4 text-primary" />

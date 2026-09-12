@@ -64,7 +64,7 @@ export default function RegisterPage() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <Card>
+      <Card className="glass">
         <CardHeader>
           <CardTitle>Build your SkillX profile</CardTitle>
           <CardDescription>

@@ -41,7 +41,7 @@ export function SkillQuiz({ skill, onClose, onVerified }: { skill: string; onClo
   });
 
   return (
-    <Card className="border-primary/40">
+    <Card className="glass border-primary/40">
       <CardHeader>
         <CardTitle className="text-base">Diagnostic quiz — {skill}</CardTitle>
         <CardDescription>5 questions. Score 60%+ to get this skill verified.</CardDescription>

@@ -72,7 +72,7 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <Card>
+      <Card className="glass">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Users className="size-4 text-primary" />

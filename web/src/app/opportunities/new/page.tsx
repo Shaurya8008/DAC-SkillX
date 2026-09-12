@@ -58,7 +58,7 @@ export default function NewOpportunityPage() {
 
   return (
     <div className="mx-auto max-w-lg">
-      <Card>
+      <Card className="glass">
         <CardHeader>
           <CardTitle>Post an opportunity</CardTitle>
         </CardHeader>
