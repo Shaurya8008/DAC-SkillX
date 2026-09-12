@@ -32,6 +32,8 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       semanticScore: score.semantic_fit,
       finalScore: score.match_percentage,
     },
+    // status is intentionally omitted here — recomputing a score must never
+    // regress an already-applied/accepted/declined match back to "suggested".
     update: {
       hardSkillScore: score.hard_skill_overlap,
       semanticScore: score.semantic_fit,
@@ -40,6 +42,31 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   });
 
   return NextResponse.json(match);
+}
+
+// PATCH: the logged-in student applies to their own match (suggested -> applied).
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { status } = (await req.json()) as { status?: string };
+  if (status !== "applied") {
+    return NextResponse.json({ error: 'status must be "applied"' }, { status: 400 });
+  }
+
+  const { id } = await params;
+  const match = await prisma.match.findUnique({
+    where: { studentId_opportunityId: { studentId: session.user.id, opportunityId: id } },
+  });
+  if (!match) {
+    return NextResponse.json({ error: "Compute your match before applying" }, { status: 404 });
+  }
+  if (match.status !== "suggested") {
+    return NextResponse.json({ error: `Match is already ${match.status}` }, { status: 409 });
+  }
+
+  const updated = await prisma.match.update({ where: { id: match.id }, data: { status: "applied" } });
+  return NextResponse.json(updated);
 }
 
 // GET: the opportunity's creator (or an admin) sees the ranked candidate list;

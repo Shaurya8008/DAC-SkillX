@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { GitFork, Sparkles, Trophy, Users } from "lucide-react";
+import { Check, GitFork, Sparkles, Trophy, Users, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -20,13 +20,15 @@ type Opportunity = {
   createdBy: { fullName: string };
 };
 
+type MatchStatus = "suggested" | "applied" | "accepted" | "declined";
+
 type Match = {
   id: string;
   studentId: string;
   hardSkillScore: number;
   semanticScore: number;
   finalScore: number;
-  status: string;
+  status: MatchStatus;
   student?: { fullName: string; githubHandle: string | null; email: string };
 };
 
@@ -36,6 +38,17 @@ const typeLabels: Record<string, string> = {
   campus_role: "Campus Role",
   project: "Project",
 };
+
+const statusVariant: Record<MatchStatus, "outline" | "secondary" | "default" | "destructive"> = {
+  suggested: "outline",
+  applied: "secondary",
+  accepted: "default",
+  declined: "destructive",
+};
+
+function StatusBadge({ status }: { status: MatchStatus }) {
+  return <Badge variant={statusVariant[status]}>{status}</Badge>;
+}
 
 export default function OpportunityDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -68,6 +81,32 @@ export default function OpportunityDetailPage() {
       return res.json();
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["matches", id] }),
+  });
+
+  const applyMatch = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/opportunities/${id}/matches`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "applied" }),
+      });
+      if (!res.ok) throw new Error("Failed to apply");
+      return res.json();
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["matches", id] }),
+  });
+
+  const updateCandidateStatus = useMutation({
+    mutationFn: async ({ matchId, status }: { matchId: string; status: "accepted" | "declined" }) => {
+      const res = await fetch(`/api/opportunities/${id}/matches/${matchId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) throw new Error("Failed to update candidate status");
+      return res.json();
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["matches", id] }),
   });
 
   if (isLoading) {
@@ -117,17 +156,30 @@ export default function OpportunityDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {myMatch ? (
-              <div className="glass grid grid-cols-3 gap-4 rounded-lg p-4">
-                <MatchScoreStat label="Final score" value={myMatch.finalScore} size="lg" />
-                <MatchScoreStat label="Hard skill overlap" value={myMatch.hardSkillScore} />
-                <MatchScoreStat label="Semantic fit" value={myMatch.semanticScore} />
-              </div>
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <StatusBadge status={myMatch.status} />
+                </div>
+                <div className="glass grid grid-cols-3 gap-4 rounded-lg p-4">
+                  <MatchScoreStat label="Final score" value={myMatch.finalScore} size="lg" />
+                  <MatchScoreStat label="Hard skill overlap" value={myMatch.hardSkillScore} />
+                  <MatchScoreStat label="Semantic fit" value={myMatch.semanticScore} />
+                </div>
+              </>
             ) : (
               <p className="text-sm text-muted-foreground">You haven&apos;t computed a match yet.</p>
             )}
-            <Button onClick={() => computeMatch.mutate()} disabled={computeMatch.isPending}>
-              {computeMatch.isPending ? "Computing…" : myMatch ? "Recompute match" : "Compute my match"}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => computeMatch.mutate()} disabled={computeMatch.isPending}>
+                {computeMatch.isPending ? "Computing…" : myMatch ? "Recompute match" : "Compute my match"}
+              </Button>
+              {myMatch?.status === "suggested" && (
+                <Button variant="outline" onClick={() => applyMatch.mutate()} disabled={applyMatch.isPending}>
+                  {applyMatch.isPending ? "Applying…" : "Apply"}
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -150,7 +202,7 @@ export default function OpportunityDetailPage() {
             ) : (
               <div className="divide-y">
                 {matches.map((m, i) => (
-                  <div key={m.id} className="flex items-center justify-between gap-4 py-3">
+                  <div key={m.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                       <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
                         {i + 1}
@@ -165,10 +217,41 @@ export default function OpportunityDetailPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-4 text-sm">
-                      <MatchScoreStat label="Hard" value={m.hardSkillScore} />
-                      <MatchScoreStat label="Semantic" value={m.semanticScore} />
-                      <MatchScoreStat label="Final" value={m.finalScore} />
+                    <div className="flex flex-wrap items-center gap-3 pl-9 sm:pl-0">
+                      <div className="flex gap-4 text-sm">
+                        <MatchScoreStat label="Hard" value={m.hardSkillScore} />
+                        <MatchScoreStat label="Semantic" value={m.semanticScore} />
+                        <MatchScoreStat label="Final" value={m.finalScore} />
+                      </div>
+                      <StatusBadge status={m.status} />
+                      <div className="flex gap-1">
+                        {m.status !== "accepted" && (
+                          <Button
+                            size="icon-sm"
+                            variant="outline"
+                            title="Accept"
+                            disabled={
+                              updateCandidateStatus.isPending && updateCandidateStatus.variables?.matchId === m.id
+                            }
+                            onClick={() => updateCandidateStatus.mutate({ matchId: m.id, status: "accepted" })}
+                          >
+                            <Check className="size-4" />
+                          </Button>
+                        )}
+                        {m.status !== "declined" && (
+                          <Button
+                            size="icon-sm"
+                            variant="outline"
+                            title="Decline"
+                            disabled={
+                              updateCandidateStatus.isPending && updateCandidateStatus.variables?.matchId === m.id
+                            }
+                            onClick={() => updateCandidateStatus.mutate({ matchId: m.id, status: "declined" })}
+                          >
+                            <X className="size-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
