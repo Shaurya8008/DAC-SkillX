@@ -78,10 +78,45 @@ not a rewrite:
    `datasource` provider in `web/prisma/schema.prisma` to `postgresql`, and
    follow the migration notes at the top of that file (native `TEXT[]` +
    `vector(1536)` columns, HNSW indexes).
-2. **Embeddings / LLM / GitHub**: set `OPENAI_API_KEY`, `GROQ_API_KEY`,
-   `GITHUB_TOKEN` in `engine/.env`. Each service in `engine/app/services/`
+2. **Embeddings / LLM / GitHub**: set `GEMINI_API_KEY` (covers both
+   embeddings and quiz generation), or `OPENAI_API_KEY` / `GROQ_API_KEY` /
+   `GITHUB_TOKEN`, in `engine/.env`. Each service in `engine/app/services/`
    auto-switches from its mock to the real API the moment its key is
-   present — no code changes needed.
+   present — no code changes needed. Gemini takes priority if multiple
+   keys are set.
 3. **Auth**: swap the Auth.js Credentials provider in `web/src/lib/auth.ts`
    for Supabase Auth if you want managed auth instead of the current
    bcrypt + JWT setup.
+
+## Market opportunity (TAM / SAM / SOM)
+
+Rough sizing, for the project write-up — refine with real numbers before
+citing externally:
+
+- **TAM**: India has ~28,000+ AICTE-approved engineering/technical
+  institutions and several million students enrolled in CS/IT-adjacent
+  programs at any time. Every one of them faces the same problem this
+  platform solves — resumes that can't be trusted, opportunities that
+  don't reach the right students.
+- **SAM**: Institutions with an active tech/AI cell, coding culture, or
+  hackathon participation — a few thousand colleges nationally, reachable
+  through campus-cell-to-campus-cell partnerships (the same channel DAC
+  itself grew through).
+- **SOM**: The initial obtainable slice is DAC's own network — the PRD's
+  Phase 3 target of 150+ DGU Computer Science students. That's the beach-
+  head; expansion to partner AI/tech cells at other campuses is the next
+  obtainable step after campus validation.
+
+## DAC R&D project guideline compliance
+
+Status against the department's 7-point project development guidelines:
+
+| # | Guideline | Status |
+| - | --------- | ------ |
+| 1 | Built via AI-assisted platform, mentor-reviewed before deployment | Built with Claude Code. **Pending mentor review.** |
+| 2 | Separate Google account per project | **Not yet set up** — use a project-dedicated account for API keys, cloud services, and forms, not a personal one. |
+| 3 | Deploy & collect real feedback | **Not yet deployed** — currently local-only. |
+| 4 | TAM/SAM/SOM documented | Done — see above. |
+| 5 | Campus-first deployment | Matches PRD Phase 3 (DGU CS student pilot) — pending execution. |
+| 6 | Unique identity + "Powered by DAC" footer | Name set; footer added (`web/src/components/footer.tsx`). |
+| 7 | Real-life solution, not just a demo | Problem (unverifiable resumes), users (students/leads/AI Cell), solution, and journey are defined in the PRD; deployment + feedback loop + commercialization angle still to be executed. |
