@@ -1,6 +1,13 @@
+import json
 import random
 
-from app.config import GROQ_API_KEY, USE_REAL_LLM
+from app.config import GEMINI_API_KEY, GROQ_API_KEY, USE_REAL_LLM
+
+QUIZ_PROMPT = (
+    "Generate exactly 5 multiple-choice code comprehension questions to validate "
+    "intermediate/advanced proficiency in {skill}. Return strict JSON: a list of "
+    'objects each with "question", "options" (4 strings), "answer_index" (0-3).'
+)
 
 # Adaptive Diagnostic Engine (FR-05): 5-question code comprehension checks
 # per claimed skill. Mock bank covers common skills; falls back to a generic
@@ -70,14 +77,29 @@ def _mock_quiz(skill: str) -> list[dict]:
     return questions[:5]
 
 
-async def _real_quiz(skill: str) -> list[dict]:
+async def _gemini_quiz(skill: str) -> list[dict]:
     import httpx
 
-    prompt = (
-        f"Generate exactly 5 multiple-choice code comprehension questions to validate "
-        f"intermediate/advanced proficiency in {skill}. Return strict JSON: a list of "
-        f'objects each with "question", "options" (4 strings), "answer_index" (0-3).'
-    )
+    prompt = QUIZ_PROMPT.format(skill=skill)
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+            params={"key": GEMINI_API_KEY},
+            json={
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"responseMimeType": "application/json"},
+            },
+        )
+        resp.raise_for_status()
+        content = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        parsed = json.loads(content)
+        return parsed if isinstance(parsed, list) else parsed.get("questions", [])
+
+
+async def _groq_quiz(skill: str) -> list[dict]:
+    import httpx
+
+    prompt = QUIZ_PROMPT.format(skill=skill)
     async with httpx.AsyncClient(timeout=30) as client:
         resp = await client.post(
             "https://api.groq.com/openai/v1/chat/completions",
@@ -89,14 +111,14 @@ async def _real_quiz(skill: str) -> list[dict]:
             },
         )
         resp.raise_for_status()
-        import json
-
         content = resp.json()["choices"][0]["message"]["content"]
         parsed = json.loads(content)
         return parsed if isinstance(parsed, list) else parsed.get("questions", [])
 
 
 async def generate_quiz(skill: str) -> list[dict]:
+    if GEMINI_API_KEY:
+        return await _gemini_quiz(skill)
     if USE_REAL_LLM:
-        return await _real_quiz(skill)
+        return await _groq_quiz(skill)
     return _mock_quiz(skill)

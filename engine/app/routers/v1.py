@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from app.config import EMBEDDING_DIM
 from app.services.diagnostics import generate_quiz
 from app.services.embeddings import embed
 from app.services.matching import compute_match
@@ -42,7 +41,7 @@ class EmbedResponse(BaseModel):
 @router.post("/embed", response_model=EmbedResponse)
 async def embed_text(req: EmbedRequest):
     vector = await embed(req.text)
-    return {"embedding": vector, "dim": EMBEDDING_DIM}
+    return {"embedding": vector, "dim": len(vector)}
 
 
 class EvaluateRepoRequest(BaseModel):

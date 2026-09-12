@@ -1,28 +1,30 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getQuiz } from "@/lib/engine";
+import { verifyQuizToken } from "@/lib/quiz-token";
 
 const PASS_THRESHOLD = 0.6;
 
-// Grades a submitted quiz server-side (the mock diagnostic engine is
-// deterministic per skill, so re-fetching it here reproduces the same
-// questions/answers without ever sending answer_index to the client).
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { skill, answers } = (await req.json()) as { skill?: string; answers?: number[] };
-  if (!skill || !Array.isArray(answers)) {
-    return NextResponse.json({ error: "skill and answers[] are required" }, { status: 400 });
+  const { skill, answers, token } = (await req.json()) as {
+    skill?: string;
+    answers?: number[];
+    token?: string;
+  };
+  if (!skill || !Array.isArray(answers) || !token) {
+    return NextResponse.json({ error: "skill, answers[], and token are required" }, { status: 400 });
   }
 
-  const quiz = await getQuiz(skill);
-  const correct = quiz.questions.reduce(
-    (count, q, i) => (answers[i] === q.answer_index ? count + 1 : count),
-    0
-  );
-  const score = correct / quiz.questions.length;
+  const correctAnswers = verifyQuizToken(token, skill);
+  if (!correctAnswers) {
+    return NextResponse.json({ error: "Quiz token invalid or expired — reload the quiz" }, { status: 400 });
+  }
+
+  const correct = correctAnswers.reduce((count, ans, i) => (answers[i] === ans ? count + 1 : count), 0);
+  const score = correct / correctAnswers.length;
   const passed = score >= PASS_THRESHOLD;
 
   if (passed) {
@@ -39,5 +41,5 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({ correct, total: quiz.questions.length, score, passed });
+  return NextResponse.json({ correct, total: correctAnswers.length, score, passed });
 }

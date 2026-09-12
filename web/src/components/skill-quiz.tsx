@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { cn } from "@/lib/utils";
 
 type Question = { question: string; options: string[] };
-type QuizPayload = { skill: string; questions: Question[] };
+type QuizPayload = { skill: string; token: string; questions: Question[] };
 type GradeResult = { correct: number; total: number; score: number; passed: boolean };
 
 export function SkillQuiz({ skill, onClose, onVerified }: { skill: string; onClose: () => void; onVerified: () => void }) {
@@ -25,10 +25,11 @@ export function SkillQuiz({ skill, onClose, onVerified }: { skill: string; onClo
 
   const submit = useMutation({
     mutationFn: async () => {
+      if (!quiz) throw new Error("Quiz not loaded");
       const res = await fetch("/api/profile/verify-skill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ skill, answers }),
+        body: JSON.stringify({ skill, answers, token: quiz.token }),
       });
       if (!res.ok) throw new Error("Failed to grade quiz");
       return res.json() as Promise<GradeResult>;

@@ -2,7 +2,7 @@ import hashlib
 
 import numpy as np
 
-from app.config import EMBEDDING_DIM, OPENAI_API_KEY, USE_REAL_EMBEDDINGS
+from app.config import EMBEDDING_DIM, GEMINI_API_KEY, OPENAI_API_KEY, USE_REAL_EMBEDDINGS
 
 
 def _mock_embedding(text: str) -> list[float]:
@@ -18,7 +18,20 @@ def _mock_embedding(text: str) -> list[float]:
     return vec.tolist()
 
 
-async def _real_embedding(text: str) -> list[float]:
+async def _gemini_embedding(text: str) -> list[float]:
+    import httpx
+
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.post(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent",
+            params={"key": GEMINI_API_KEY},
+            json={"content": {"parts": [{"text": text}]}},
+        )
+        resp.raise_for_status()
+        return resp.json()["embedding"]["values"]
+
+
+async def _openai_embedding(text: str) -> list[float]:
     import httpx
 
     async with httpx.AsyncClient(timeout=30) as client:
@@ -33,8 +46,10 @@ async def _real_embedding(text: str) -> list[float]:
 
 
 async def embed(text: str) -> list[float]:
+    if GEMINI_API_KEY:
+        return await _gemini_embedding(text)
     if USE_REAL_EMBEDDINGS:
-        return await _real_embedding(text)
+        return await _openai_embedding(text)
     return _mock_embedding(text)
 
 
