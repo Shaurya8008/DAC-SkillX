@@ -28,11 +28,19 @@ export async function POST(req: Request) {
     });
 
     const resetUrl = `${new URL(req.url).origin}/reset-password?token=${rawToken}`;
-    await sendEmail({
-      to: profile.email,
-      subject: "Reset your DAC SkillX password",
-      html: `<p>Someone requested a password reset for your SkillX account.</p><p><a href="${resetUrl}">Reset your password</a> — this link expires in 1 hour.</p><p>If you didn't request this, you can ignore this email.</p>`,
-    });
+    try {
+      await sendEmail({
+        to: profile.email,
+        subject: "Reset your DAC SkillX password",
+        html: `<p>Someone requested a password reset for your SkillX account.</p><p><a href="${resetUrl}">Reset your password</a> — this link expires in 1 hour.</p><p>If you didn't request this, you can ignore this email.</p>`,
+      });
+    } catch (err) {
+      // Never let an email-provider failure surface as a different response
+      // than "email doesn't exist" — that difference is exactly what would
+      // let an attacker enumerate registered accounts. Log and move on; the
+      // generic message below is returned either way.
+      console.error("Failed to send password reset email:", err);
+    }
   }
 
   return NextResponse.json({ message: GENERIC_MESSAGE });
