@@ -35,6 +35,11 @@ model Profile {
   repoStack      String? // JSON string[] — primary language stack from the last analyzed repo
   repoComplexity Float? // 0-10 complexity score from the last analyzed repo
 
+  // Forgot-password: a single active reset token at a time is enough at
+  // pilot scale. Stores a SHA-256 hash of the token, never the raw value.
+  resetTokenHash      String?   @unique
+  resetTokenExpiresAt DateTime?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

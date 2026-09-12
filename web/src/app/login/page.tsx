@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 import { GoogleSignInButton } from "@/components/google-signin-button";
 
 export default function LoginPage() {
@@ -49,7 +50,12 @@ export default function LoginPage() {
               <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link href="/forgot-password" className="text-xs text-muted-foreground underline underline-offset-2">
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"
