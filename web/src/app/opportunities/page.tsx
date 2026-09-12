@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CardSkeleton } from "@/components/skeleton";
+import { RevealGroup, RevealItem } from "@/components/reveal";
+import { TiltCard } from "@/components/tilt-card";
 
 type Opportunity = {
   id: string;
@@ -69,38 +71,42 @@ export default function OpportunitiesPage() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <RevealGroup className="grid gap-4 sm:grid-cols-2">
         {data?.map((o) => {
           const meta = TYPE_META[o.opportunityType];
           const Icon = meta?.icon ?? Sparkles;
           return (
-            <Link key={o.id} href={`/opportunities/${o.id}`}>
-              <Card className="h-full transition-all hover:border-primary hover:shadow-sm">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="gap-1">
-                      <Icon className="size-3" />
-                      {meta?.label ?? o.opportunityType}
-                    </Badge>
-                  </div>
-                  <CardTitle className="text-lg">{o.title}</CardTitle>
-                  <CardDescription className="line-clamp-2">{o.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-1.5">
-                    {o.requiredSkills.slice(0, 5).map((s) => (
-                      <Badge key={s} variant="secondary">
-                        {s}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="mt-3 text-xs text-muted-foreground">Posted by {o.createdBy.fullName}</p>
-                </CardContent>
-              </Card>
-            </Link>
+            <RevealItem key={o.id}>
+              <Link href={`/opportunities/${o.id}`}>
+                <TiltCard>
+                  <Card className="h-full transition-shadow hover:border-primary hover:shadow-sm">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="gap-1">
+                          <Icon className="size-3" />
+                          {meta?.label ?? o.opportunityType}
+                        </Badge>
+                      </div>
+                      <CardTitle className="text-lg">{o.title}</CardTitle>
+                      <CardDescription className="line-clamp-2">{o.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-1.5">
+                        {o.requiredSkills.slice(0, 5).map((s) => (
+                          <Badge key={s} variant="secondary">
+                            {s}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="mt-3 text-xs text-muted-foreground">Posted by {o.createdBy.fullName}</p>
+                    </CardContent>
+                  </Card>
+                </TiltCard>
+              </Link>
+            </RevealItem>
           );
         })}
-      </div>
+      </RevealGroup>
     </div>
   );
 }

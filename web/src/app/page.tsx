@@ -11,6 +11,8 @@ import {
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { Reveal, RevealGroup, RevealItem } from "@/components/reveal";
+import { TiltCard } from "@/components/tilt-card";
 
 const personas = [
   {
@@ -61,67 +63,81 @@ export default function Home() {
           }}
         />
         <div className="mx-auto max-w-2xl space-y-6">
-          <div className="mx-auto flex w-fit items-center gap-1.5 rounded-full border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
-            <Sparkles className="size-3.5 text-primary" />
-            DGU AI Cell (DAC)
-          </div>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-            Prove your skills.
-            <br />
-            <span className="bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-transparent">
-              Don&apos;t just claim them.
-            </span>
-          </h1>
-          <p className="mx-auto max-w-xl text-muted-foreground">
-            DAC SkillX replaces self-reported resumes with an AI-driven assessment: GitHub repo inspection, adaptive
-            diagnostics, and vector-space opportunity matching.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3 pt-2">
-            <Link href="/register" className={cn(buttonVariants({ size: "lg" }), "gap-1.5")}>
-              Build your profile
-              <ArrowRight className="size-4" />
-            </Link>
-            <Link href="/opportunities" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
-              Browse opportunities
-            </Link>
-          </div>
+          <Reveal>
+            <div className="mx-auto flex w-fit items-center gap-1.5 rounded-full border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
+              <Sparkles className="size-3.5 text-primary" />
+              DGU AI Cell (DAC)
+            </div>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+              Prove your skills.
+              <br />
+              <span className="bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-transparent">
+                Don&apos;t just claim them.
+              </span>
+            </h1>
+          </Reveal>
+          <Reveal delay={0.2}>
+            <p className="mx-auto max-w-xl text-muted-foreground">
+              DAC SkillX replaces self-reported resumes with an AI-driven assessment: GitHub repo inspection, adaptive
+              diagnostics, and vector-space opportunity matching.
+            </p>
+          </Reveal>
+          <Reveal delay={0.3}>
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <Link href="/register" className={cn(buttonVariants({ size: "lg" }), "gap-1.5")}>
+                Build your profile
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link href="/opportunities" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
+                Browse opportunities
+              </Link>
+            </div>
+          </Reveal>
         </div>
       </section>
 
       <section className="space-y-8">
-        <div className="mx-auto max-w-lg text-center">
+        <Reveal className="mx-auto max-w-lg text-center">
           <h2 className="text-2xl font-semibold">How it works</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Three steps from self-reported skills to a verified, matchable profile.
           </p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-3">
+        </Reveal>
+        <RevealGroup className="grid gap-4 sm:grid-cols-3">
           {steps.map((s, i) => (
-            <div key={s.title} className="relative rounded-xl border p-5">
-              <span className="absolute -top-3 -left-1 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-                {i + 1}
-              </span>
-              <s.icon className="mb-3 size-5 text-primary" />
-              <h3 className="font-medium">{s.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{s.body}</p>
-            </div>
+            <RevealItem key={s.title}>
+              <TiltCard className="h-full rounded-xl border p-5">
+                <span className="absolute -top-3 -left-1 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                  {i + 1}
+                </span>
+                <s.icon className="mb-3 size-5 text-primary" />
+                <h3 className="font-medium">{s.title}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">{s.body}</p>
+              </TiltCard>
+            </RevealItem>
           ))}
-        </div>
+        </RevealGroup>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-3">
+      <RevealGroup className="grid gap-4 sm:grid-cols-3">
         {personas.map((p) => (
-          <Card key={p.title} className="transition-shadow hover:shadow-sm">
-            <CardHeader>
-              <p.icon className="mb-1 size-5 text-primary" />
-              <CardTitle className="text-base">{p.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>{p.body}</CardDescription>
-            </CardContent>
-          </Card>
+          <RevealItem key={p.title}>
+            <TiltCard className="h-full">
+              <Card className="h-full transition-shadow hover:shadow-sm">
+                <CardHeader>
+                  <p.icon className="mb-1 size-5 text-primary" />
+                  <CardTitle className="text-base">{p.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>{p.body}</CardDescription>
+                </CardContent>
+              </Card>
+            </TiltCard>
+          </RevealItem>
         ))}
-      </section>
+      </RevealGroup>
     </div>
   );
 }
