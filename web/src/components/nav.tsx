@@ -28,7 +28,7 @@ export function Nav() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-background/70 backdrop-blur-xl backdrop-saturate-150 dark:border-white/5">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link href="/" className="text-lg font-semibold tracking-tight" onClick={() => setOpen(false)}>
           DAC <span className="text-primary">SkillX</span>

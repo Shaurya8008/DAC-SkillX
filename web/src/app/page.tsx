@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { cn } from "@/lib/utils";
 import { Reveal, RevealGroup, RevealItem } from "@/components/reveal";
 import { TiltCard } from "@/components/tilt-card";
+import { LiquidBackground } from "@/components/liquid-background";
 
 const personas = [
   {
@@ -54,6 +55,7 @@ export default function Home() {
   return (
     <div className="space-y-24">
       <section className="relative -mx-6 -mt-10 overflow-hidden px-6 pt-20 pb-16 text-center sm:pt-28">
+        <LiquidBackground className="-z-20" />
         <div
           className="pointer-events-none absolute inset-0 -z-10 opacity-40 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black,transparent)]"
           style={{
@@ -64,7 +66,7 @@ export default function Home() {
         />
         <div className="mx-auto max-w-2xl space-y-6">
           <Reveal>
-            <div className="mx-auto flex w-fit items-center gap-1.5 rounded-full border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
+            <div className="glass mx-auto flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground">
               <Sparkles className="size-3.5 text-primary" />
               DGU AI Cell (DAC)
             </div>
@@ -90,7 +92,10 @@ export default function Home() {
                 Build your profile
                 <ArrowRight className="size-4" />
               </Link>
-              <Link href="/opportunities" className={cn(buttonVariants({ variant: "outline", size: "lg" }))}>
+              <Link
+                href="/opportunities"
+                className={cn(buttonVariants({ variant: "outline", size: "lg" }), "glass glass-interactive")}
+              >
                 Browse opportunities
               </Link>
             </div>
@@ -108,7 +113,7 @@ export default function Home() {
         <RevealGroup className="grid gap-4 sm:grid-cols-3">
           {steps.map((s, i) => (
             <RevealItem key={s.title}>
-              <TiltCard className="h-full rounded-xl border p-5">
+              <TiltCard className="glass h-full rounded-xl p-5">
                 <span className="absolute -top-3 -left-1 flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                   {i + 1}
                 </span>
@@ -125,7 +130,7 @@ export default function Home() {
         {personas.map((p) => (
           <RevealItem key={p.title}>
             <TiltCard className="h-full">
-              <Card className="h-full transition-shadow hover:shadow-sm">
+              <Card className="glass h-full transition-shadow hover:shadow-sm">
                 <CardHeader>
                   <p.icon className="mb-1 size-5 text-primary" />
                   <CardTitle className="text-base">{p.title}</CardTitle>

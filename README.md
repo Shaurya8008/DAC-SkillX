@@ -11,30 +11,29 @@ campus roles, projects).
 ## Structure
 
 - `web/` — Next.js 15 app (App Router, Tailwind, shadcn/ui, TanStack Query,
-  Auth.js/NextAuth, Prisma). Student- and admin-facing UI plus the
-  Next.js-side API routes.
-- `engine/` — Python FastAPI AI engine. Embeddings, hybrid match scoring,
-  GitHub repo evaluation, and the adaptive diagnostic quiz generator.
+  Auth.js/NextAuth, Prisma). This is the whole deployed app: UI, API
+  routes, **and** the AI logic (`web/src/lib/ai/` — embeddings, hybrid
+  match scoring, GitHub repo evaluation, adaptive diagnostic quiz
+  generation) runs in-process here.
+- `engine/` — Python FastAPI implementation of the same AI logic, matching
+  the PRD's stated architecture (sec. 3) more literally. Kept as the
+  reference/standalone version; **not required to run or deploy the app**
+  — `web/` doesn't call out to it.
+
+Why two copies: the PRD specifies a decoupled Python/FastAPI AI service.
+That's `engine/`, and it's a complete, independently runnable
+implementation. For the actual deployment, that logic was ported into
+`web/src/lib/ai/` (TypeScript) so the whole app ships as a single Next.js
+service with one host and one URL, instead of two services to keep alive.
+The two stay logically identical — same mock/real fallback behavior, same
+formulas.
 
 ## Running locally
 
 Everything runs with **zero external accounts** by default: SQLite instead
-of Supabase/Postgres, and deterministic mock embeddings/LLM calls instead of
-OpenAI/Groq/GitHub. Flip a switch later (see "Going to production" below)
-once you have real keys.
-
-### 1. AI engine
-
-```bash
-cd engine
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-```
-
-Health check: `curl http://localhost:8000/health`
-
-### 2. Web app
+of Supabase/Postgres, and a deterministic mock embeddings/quiz generator
+instead of Gemini/GitHub. Flip a switch later (see "Going to production"
+below) once you have real keys.
 
 ```bash
 cd web
@@ -45,6 +44,9 @@ npm run dev
 ```
 
 Open http://localhost:3000.
+
+(`engine/` can also be run standalone — see its own instructions — but
+nothing in `web/` talks to it.)
 
 ### Demo accounts (from `npm run db:seed`)
 
@@ -62,29 +64,26 @@ is included so you can test the matching engine immediately.
 | ID    | Feature                     | Where                                                          |
 | ----- | ---------------------------- | --------------------------------------------------------------- |
 | FR-01 | Dynamic Profile Builder      | `web/src/app/register`, `web/src/app/profile`                   |
-| FR-02 | Hybrid Matching Engine       | `engine/app/services/matching.py`, `web/src/app/api/opportunities/[id]/matches` |
+| FR-02 | Hybrid Matching Engine       | `web/src/lib/ai/matching.ts`, `web/src/app/api/opportunities/[id]/matches` |
 | FR-03 | Opportunity Board            | `web/src/app/opportunities`                                     |
-| FR-04 | GitHub Repo Vetting          | `engine/app/services/repo_eval.py`, `web/src/app/api/profile/verify-repo` |
-| FR-05 | Adaptive Diagnostic Engine   | `engine/app/services/diagnostics.py`, `web/src/app/api/quiz`, `web/src/components/skill-quiz.tsx` |
+| FR-04 | GitHub Repo Vetting          | `web/src/lib/ai/repo-eval.ts`, `web/src/app/api/profile/verify-repo` |
+| FR-05 | Adaptive Diagnostic Engine   | `web/src/lib/ai/diagnostics.ts`, `web/src/app/api/quiz`, `web/src/components/skill-quiz.tsx` |
 | FR-06 | DAC Executive Dashboard      | `web/src/app/admin`                                              |
 
 ## Going to production
 
-Everything is structured so swapping in real infrastructure is additive,
-not a rewrite:
-
-1. **Database**: stand up Postgres + pgvector (`docker compose up -d`, or a
-   Supabase project), point `web/.env` `DATABASE_URL` at it, change the
-   `datasource` provider in `web/prisma/schema.prisma` to `postgresql`, and
-   follow the migration notes at the top of that file (native `TEXT[]` +
-   `vector(1536)` columns, HNSW indexes).
-2. **Embeddings / LLM / GitHub**: set `GEMINI_API_KEY` (covers both
-   embeddings and quiz generation), or `OPENAI_API_KEY` / `GROQ_API_KEY` /
-   `GITHUB_TOKEN`, in `engine/.env`. Each service in `engine/app/services/`
-   auto-switches from its mock to the real API the moment its key is
-   present — no code changes needed. Gemini takes priority if multiple
-   keys are set.
-3. **Auth**: swap the Auth.js Credentials provider in `web/src/lib/auth.ts`
+1. **Database**: stand up Postgres (a Supabase project, or `docker compose
+   up -d` for local pgvector), point `web/.env` `DATABASE_URL` at it, and
+   change the `datasource` provider in `web/prisma/schema.prisma` to
+   `postgresql` — no other schema changes are required to deploy. Adopting
+   native `TEXT[]` + `vector(1536)` columns and HNSW indexes (see the
+   migration notes at the top of that file) is a later optimization, not a
+   blocker.
+2. **Embeddings / quiz generation**: set `GEMINI_API_KEY` in `web/.env` (or
+   your host's env vars). `web/src/lib/ai/` auto-switches from mock to real
+   the moment it's present — no code changes needed.
+3. **GitHub repo vetting**: set `GITHUB_TOKEN` the same way.
+4. **Auth**: swap the Auth.js Credentials provider in `web/src/lib/auth.ts`
    for Supabase Auth if you want managed auth instead of the current
    bcrypt + JWT setup.
 

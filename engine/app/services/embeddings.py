@@ -46,6 +46,11 @@ async def _openai_embedding(text: str) -> list[float]:
 
 
 async def embed(text: str) -> list[float]:
+    # Gemini's embedContent rejects empty input outright ("empty Part"); an
+    # empty bio/description has no semantic content to embed anyway, so
+    # skip the real call and go straight to a stable placeholder vector.
+    if not text or not text.strip():
+        return _mock_embedding("")
     if GEMINI_API_KEY:
         return await _gemini_embedding(text)
     if USE_REAL_EMBEDDINGS:

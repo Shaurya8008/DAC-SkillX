@@ -1,10 +1,17 @@
-// Thin client for the FastAPI AI engine (PRD sec. 7 API Contract).
-// The engine runs in "mock mode" by default — deterministic fake embeddings
-// and heuristic repo scoring — so this works with zero API keys. Once
-// OPENAI_API_KEY / GROQ_API_KEY are set on the engine, real calls replace
-// the mocks with no change needed on this side.
+// Local facade over the AI logic (src/lib/ai/) — runs in-process rather than
+// calling out to a separate service, so the whole app deploys as a single
+// Next.js app (see engine/ for the standalone FastAPI implementation this
+// mirrors, kept as the PRD's reference architecture).
+//
+// Runs in "mock mode" by default — deterministic fake embeddings and
+// heuristic repo scoring — so this works with zero API keys. Once
+// GEMINI_API_KEY / GITHUB_TOKEN are set, real calls replace the mocks with
+// no change needed by callers.
 
-const ENGINE_URL = process.env.ENGINE_URL ?? "http://localhost:8000";
+import { computeMatch } from "@/lib/ai/matching";
+import { embed } from "@/lib/ai/embeddings";
+import { evaluateRepo as evaluateRepoImpl } from "@/lib/ai/repo-eval";
+import { generateQuiz } from "@/lib/ai/diagnostics";
 
 export type MatchScoreResponse = {
   match_percentage: number;
@@ -34,36 +41,25 @@ export type QuizResponse = {
   questions: QuizQuestion[];
 };
 
-async function post<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${ENGINE_URL}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error(`Engine request to ${path} failed: ${res.status} ${await res.text()}`);
-  }
-  return res.json() as Promise<T>;
-}
-
-export function getMatchScore(input: {
+export async function getMatchScore(input: {
   student_skills: string[];
   student_bio: string;
   opportunity_requirements: string[];
   opportunity_description: string;
-}) {
-  return post<MatchScoreResponse>("/api/v1/match-score", input);
+}): Promise<MatchScoreResponse> {
+  return computeMatch(input.student_skills, input.student_bio, input.opportunity_requirements, input.opportunity_description);
 }
 
-export function embedText(text: string) {
-  return post<EmbedResponse>("/api/v1/embed", { text });
+export async function embedText(text: string): Promise<EmbedResponse> {
+  const embedding = await embed(text);
+  return { embedding, dim: embedding.length };
 }
 
-export function evaluateRepo(input: { github_handle: string; repo_name: string }) {
-  return post<EvaluateRepoResponse>("/api/v1/evaluaterepo", input);
+export async function evaluateRepo(input: { github_handle: string; repo_name: string }): Promise<EvaluateRepoResponse> {
+  return evaluateRepoImpl(input.github_handle, input.repo_name);
 }
 
-export function getQuiz(skill: string) {
-  return post<QuizResponse>("/api/v1/quiz", { skill });
+export async function getQuiz(skill: string): Promise<QuizResponse> {
+  const questions = await generateQuiz(skill);
+  return { skill, questions };
 }
