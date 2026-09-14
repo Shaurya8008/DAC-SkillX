@@ -2,7 +2,7 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: oklch(0.985 0.004 265);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -21,11 +21,22 @@
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
 
-  --glass-bg: oklch(0 0 0 / 3%);
-  --glass-bg-hover: oklch(0 0 0 / 6%);
-  --glass-border: oklch(0 0 0 / 8%);
-  --glass-highlight: oklch(1 0 0 / 60%);
-  --glass-shadow: oklch(0 0 0 / 8%);
+  /* Glass: a frosted white pane over the ambient blobs. The pane is a
+     diagonal gradient (brighter top-left) with a gradient rim and a specular
+     sheen layered on top, which is what separates "glass" from "gray box". */
+  --glass-bg-a: oklch(1 0 0 / 62%);
+  --glass-bg-b: oklch(1 0 0 / 34%);
+  --glass-bg-hover-a: oklch(1 0 0 / 74%);
+  --glass-bg-hover-b: oklch(1 0 0 / 48%);
+  --glass-border: oklch(1 0 0 / 55%);
+  --glass-rim-a: oklch(1 0 0 / 95%);
+  --glass-rim-b: oklch(1 0 0 / 25%);
+  --glass-highlight: oklch(1 0 0 / 90%);
+  --glass-sheen: oklch(1 0 0 / 45%);
+  --glass-shadow: oklch(0.3 0.03 270 / 6%);
+  --glass-shadow-far: oklch(0.3 0.03 270 / 14%);
+  --glass-bar: oklch(1 0 0 / 68%);
+  --glass-field: oklch(1 0 0 / 55%);
 }
 
 @theme inline {
@@ -57,7 +68,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.145 0 0);
+    --background: oklch(0.15 0.012 275);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);
     --card-foreground: oklch(0.985 0 0);
@@ -76,11 +87,19 @@
     --input: oklch(1 0 0 / 18%);
     --ring: oklch(0.556 0 0);
 
-    --glass-bg: oklch(1 0 0 / 12%);
-    --glass-bg-hover: oklch(1 0 0 / 18%);
-    --glass-border: oklch(1 0 0 / 22%);
-    --glass-highlight: oklch(1 0 0 / 30%);
-    --glass-shadow: oklch(0 0 0 / 45%);
+    --glass-bg-a: oklch(1 0 0 / 11%);
+    --glass-bg-b: oklch(1 0 0 / 4%);
+    --glass-bg-hover-a: oklch(1 0 0 / 16%);
+    --glass-bg-hover-b: oklch(1 0 0 / 8%);
+    --glass-border: oklch(1 0 0 / 14%);
+    --glass-rim-a: oklch(1 0 0 / 42%);
+    --glass-rim-b: oklch(1 0 0 / 6%);
+    --glass-highlight: oklch(1 0 0 / 22%);
+    --glass-sheen: oklch(1 0 0 / 12%);
+    --glass-shadow: oklch(0 0 0 / 30%);
+    --glass-shadow-far: oklch(0 0 0 / 55%);
+    --glass-bar: oklch(0.15 0.012 275 / 62%);
+    --glass-field: oklch(1 0 0 / 6%);
   }
 }
 
@@ -95,21 +114,75 @@ body {
 }
 
 .glass {
-  background: var(--glass-bg);
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(135deg, var(--glass-bg-a), var(--glass-bg-b));
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   box-shadow:
     inset 0 1px 0 0 var(--glass-highlight),
-    0 8px 24px -4px var(--glass-shadow);
+    inset 0 -1px 0 0 oklch(0 0 0 / 4%),
+    0 1px 2px 0 var(--glass-shadow),
+    0 18px 44px -14px var(--glass-shadow-far);
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
 }
 
-.glass-interactive {
-  transition: background-color 0.2s ease;
+/* Specular sheen: sits above the pane's own background but under content
+   (negative z-index inside the isolated stacking context). */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, var(--glass-sheen) 0%, transparent 38%, transparent 70%, var(--glass-sheen) 100%);
+  opacity: 0.8;
+}
+
+/* Gradient rim: a 1px ring drawn with a masked padding box so it follows
+   the border radius (border-image can't). Brighter where light would hit. */
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--glass-rim-a) 0%, var(--glass-rim-b) 45%, var(--glass-rim-b) 65%, var(--glass-rim-a) 100%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
 }
 
 .glass-interactive:hover {
-  background: var(--glass-bg-hover);
+  background: linear-gradient(135deg, var(--glass-bg-hover-a), var(--glass-bg-hover-b));
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    inset 0 -1px 0 0 oklch(0 0 0 / 4%),
+    0 2px 4px 0 var(--glass-shadow),
+    0 26px 56px -16px var(--glass-shadow-far);
+}
+
+/* Full-width bars (nav) skip the masked rim and use a flat bottom edge. */
+.glass-bar {
+  background: var(--glass-bar);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 8px 24px -12px var(--glass-shadow-far);
 }
 
 @keyframes ambient-drift-1 {
@@ -125,4 +198,9 @@ body {
 @keyframes ambient-drift-3 {
   0%, 100% { transform: translate(0, 0) scale(1); }
   50% { transform: translate(4%, -6%) scale(0.95); }
+}
+
+@keyframes ambient-drift-4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-5%, 7%) scale(1.08); }
 }

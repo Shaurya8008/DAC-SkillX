@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { SkillQuiz } from "@/components/skill-quiz";
+import { ResumeUpload, skillKey } from "@/components/resume-upload";
 
 type Profile = {
   id: string;
@@ -97,6 +98,21 @@ export default function ProfilePage() {
     onError: (e: Error) => setRepoError(e.message),
   });
 
+  async function addSkills(newSkills: string[]) {
+    if (!profile) return;
+    const merged = [...profile.skills];
+    for (const s of newSkills) {
+      if (!merged.some((m) => skillKey(m) === skillKey(s))) merged.push(s);
+    }
+    const res = await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skills: merged, bio: profile.bio ?? undefined }),
+    });
+    if (!res.ok) throw new Error("Failed to add skills");
+    await queryClient.invalidateQueries({ queryKey: ["profile"] });
+  }
+
   if (isLoading) return <p className="text-muted-foreground">Loading profile…</p>;
   if (!profile) return <p className="text-muted-foreground">Sign in to view your profile.</p>;
 
@@ -159,6 +175,8 @@ export default function ProfilePage() {
           onVerified={() => queryClient.invalidateQueries({ queryKey: ["profile"] })}
         />
       )}
+
+      <ResumeUpload existingSkills={profile.skills} onAdd={addSkills} />
 
       <Card className="glass">
         <CardHeader>

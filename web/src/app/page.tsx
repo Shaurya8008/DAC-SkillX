@@ -130,7 +130,7 @@ export default function Home() {
         {personas.map((p, i) => (
           <RevealItem key={p.title} index={i}>
             <TiltCard className="h-full">
-              <Card className="glass h-full transition-shadow hover:shadow-sm">
+              <Card className="glass glass-interactive h-full">
                 <CardHeader>
                   <p.icon className="mb-1 size-5 text-primary" />
                   <CardTitle className="text-base">{p.title}</CardTitle>

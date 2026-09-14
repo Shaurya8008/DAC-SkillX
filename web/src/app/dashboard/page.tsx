@@ -60,7 +60,8 @@ export default function DashboardPage() {
               <div>
                 <p className="font-medium">Your profile is empty</p>
                 <p className="text-sm text-muted-foreground">
-                  Add your skills and GitHub handle so we can recommend opportunities and start verifying you.
+                  Upload your resume or add skills by hand, plus your GitHub handle, so we can recommend opportunities
+                  and start verifying you.
                 </p>
               </div>
             </div>
@@ -142,7 +143,7 @@ export default function DashboardPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             {recommended.map((o) => (
               <Link key={o.id} href={`/opportunities/${o.id}`}>
-                <Card className="glass h-full transition-all hover:border-primary hover:shadow-sm">
+                <Card className="glass glass-interactive h-full">
                   <CardHeader>
                     <Badge variant="outline">{o.opportunityType}</Badge>
                     <CardTitle className="text-base">{o.title}</CardTitle>

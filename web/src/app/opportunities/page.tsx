@@ -87,7 +87,7 @@ export default function OpportunitiesPage() {
             <RevealItem key={o.id} index={i}>
               <Link href={`/opportunities/${o.id}`}>
                 <TiltCard>
-                  <Card className="glass h-full transition-shadow hover:border-primary hover:shadow-sm">
+                  <Card className="glass glass-interactive h-full">
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <Badge variant="outline" className="gap-1">

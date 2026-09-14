@@ -12,6 +12,7 @@ import { computeMatch } from "@/lib/ai/matching";
 import { embed } from "@/lib/ai/embeddings";
 import { evaluateRepo as evaluateRepoImpl } from "@/lib/ai/repo-eval";
 import { generateQuiz } from "@/lib/ai/diagnostics";
+import { extractSkillsFromResume } from "@/lib/ai/resume";
 
 export type MatchScoreResponse = {
   match_percentage: number;
@@ -62,4 +63,8 @@ export async function evaluateRepo(input: { github_handle: string; repo_name: st
 export async function getQuiz(skill: string): Promise<QuizResponse> {
   const questions = await generateQuiz(skill);
   return { skill, questions };
+}
+
+export async function extractResumeSkills(resumeText: string): Promise<string[]> {
+  return extractSkillsFromResume(resumeText);
 }
